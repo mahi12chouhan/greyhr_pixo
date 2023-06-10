@@ -38,4 +38,9 @@ test:
 
 production:
   <<: *default
-  database: db/production.postgresql
+  adapter: postgresql
+  encoding: utf8
+  reconnect: false
+  pool: 15
+  username: rails
+  password: rails
