@@ -40,8 +40,7 @@ production:
   <<: *default
   adapter: postgresql
   database: geryhr
-  encoding: utf8
-  reconnect: false
-  pool: 15
   username: rails
   password: rails
+  host: <%= ENV['TEMPLATE_DATABASE_HOSTNAME'] %>
+  port: 5432
