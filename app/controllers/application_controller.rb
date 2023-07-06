@@ -1,26 +1,33 @@
 class ApplicationController < ActionController::Base
-	
-	def authenticate_employee
-	    token = request.headers['Authorization']
-	    decoded_token = decode_token(token)
 
-	    if decoded_token
-	      employee_id = decoded_token['employee_id']
-	      @current_employee = Account.find_by(id: employee_id)
-	    end
+  def not_found
+    render json: { error: 'not_found' }
+  end
 
-	    if @current_employee.nil?
-	      render json: { error: 'Unauthorized' }, status: :unauthorized
-	    end
-    end
-    def current_employee
-    	@current_employee
-    end
 
-    def decode_token(token)
-    	JWT.decode(token, Rails.application.secrets.secret_key_base).first
-    rescue JWT::DecodeError, JWT::ExpiredSignature
-    	nil
-    end
+  # def authorize_request
+  #   header = request.headers['Authorization']
+  #   header = header.split(' ').last if header
+  #   begin
+  #     @decoded = JsonWebToken.decode(header)
+  #     @current_user = User.find(@decoded[:user_id])
+  #   rescue ActiveRecord::RecordNotFound => e
+  #     render json: { errors: e.message }, status: :unauthorized
+  #   rescue JWT::DecodeError => e
+  #     render json: { errors: e.message }, status: :unauthorized
+  #   end
+  # end
+
+  def authenticate_employee
+    token = request.headers['Authorization']&.split(' ')&.last
+    return head :unauthorized unless token && TokenService.verify_token(token)
+
+    @current_employee = find_employee_from_token(token)
+  end
+
+  def find_employee_from_token(token)
+    payload = TokenService.verify_token(token)
+    Employee.find(payload['employee_id'])
+  end
 
 end

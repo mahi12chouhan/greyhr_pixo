@@ -1,5 +1,6 @@
 class AccountSerializer < ActiveModel::Serializer
   attributes *[
+    :id,
     :user_id,
     :user_type,
     :job_type,

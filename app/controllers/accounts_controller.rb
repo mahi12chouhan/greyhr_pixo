@@ -1,11 +1,14 @@
+require 'json_web_token'
 class AccountsController < ApplicationController
 	skip_before_action :verify_authenticity_token, only: [:login, :forgot_password]
-	protect_from_forgery with: :null_session
+	# protect_from_forgery with: :null_session
 
 	def login
+		byebug
 		employee = Account.find_by(email: params[:email], password: params[:password])
 		if employee.present?
-			token = generate_token(employee)
+			payload = { user_id: employee.id }
+			token = JsonWebToken.encode(payload)
 			 render json: { employee: AccountSerializer.new(employee), token: token }, status: :created
 		else
 			render json: { error: 'Invalid email or password' }, status: :unauthorized
@@ -43,10 +46,10 @@ class AccountsController < ApplicationController
     end
 	private
 
-	def generate_token(employee)
-		payload = { employee_id: employee.id }
-		JWT.encode(payload, Rails.application.secrets.secret_key_base)
-	end
+	# def generate_token(employee)
+	# 	payload = { employee_id: employee.id }
+	# 	JWT.encode(payload, Rails.application.secrets.secret_key_base)
+	# end
 	
 	def account_params
 		params.require(:account).permit(:full_name, :job_type, :user_type, :email,:image)
@@ -54,7 +57,5 @@ class AccountsController < ApplicationController
 
     def send_otp_email(email, otp)
     	ForgotPasswordMailer.with(email: email, otp: otp).otp_email.deliver_now
-    end
-
-	
+    end	
 end
